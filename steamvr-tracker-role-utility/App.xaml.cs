@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace openvr_tracker_role_gui
+namespace steamvr_tracker_role_utility
 {
     /// <summary>
     /// Interaction logic for App.xaml

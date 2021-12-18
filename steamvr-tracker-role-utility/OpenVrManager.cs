@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using Valve.VR;
 
-namespace openvr_tracker_role_gui
+namespace steamvr_tracker_role_utility
 {
     internal class TrackedDevice
     {
@@ -32,8 +32,19 @@ namespace openvr_tracker_role_gui
         private event EventHandler trackersSectionChanged;
         private Dictionary<string, string> steamVrTrackerBindings;
 
+
         public OpenVrManager()
         {
+            if (!OpenVR.IsRuntimeInstalled())
+            {
+                Trace.WriteLine("SteamVR runtime not installed!");
+            }
+
+            // Ensure SteamVR is running
+            var dummyError = EVRInitError.None;
+            OpenVR.Init(ref dummyError, EVRApplicationType.VRApplication_Scene);
+            OpenVR.Shutdown();
+
             EVRInitError initError = EVRInitError.None;
             var vrSystem = OpenVR.Init(ref initError, EVRApplicationType.VRApplication_Utility);
             if (initError == EVRInitError.None)
@@ -42,9 +53,11 @@ namespace openvr_tracker_role_gui
             }
             else
             {
-                Trace.TraceError($"Could not initialize OpenVR! {initError}");
+                Trace.WriteLine($"Could not initialize OpenVR! {initError}");
                 return;
             }
+
+            Trace.WriteLine("Initialized OpenVR.");
 
             UpdateSteamVrTrackerBindings();
             UpdateConnectedDevices();
@@ -73,7 +86,7 @@ namespace openvr_tracker_role_gui
                 }, null);
             };
 
-            eventTask = Task.Run(() =>
+            eventTask = Task.Run(async () =>
             {
                 var vrEvent = new VREvent_t();
 
@@ -85,7 +98,7 @@ namespace openvr_tracker_role_gui
                         {
                             case EVREventType.VREvent_TrackedDeviceActivated:
                                 Trace.WriteLine($"Activated device {vrEvent.trackedDeviceIndex}");
-                                deviceConnectedChanged.Invoke(this, EventArgs.Empty);  
+                                deviceConnectedChanged.Invoke(this, EventArgs.Empty);
                                 break;
                             case EVREventType.VREvent_TrackedDeviceDeactivated:
                                 Trace.WriteLine($"Deactivated device {vrEvent.trackedDeviceIndex}");
@@ -93,7 +106,9 @@ namespace openvr_tracker_role_gui
                                 break;
                             case EVREventType.VREvent_TrackersSectionSettingChanged:
                                 Trace.WriteLine("SteamVR tracker bindings changed");
-                                //trackersSectionChanged.Invoke(this, EventArgs.Empty);   
+                                // Allow some time until SteamVR configuration file has been updated on disk
+                                await Task.Delay(1000);
+                                trackersSectionChanged.Invoke(this, EventArgs.Empty);
                                 break;
                             default:
                                 break;
@@ -195,7 +210,7 @@ namespace openvr_tracker_role_gui
                 OpenVR.Settings.SetString(OpenVR.k_pch_Trackers_Section, $"/devices/htc/vive_tracker{trackerRole.SerialNumber}", roleString, ref settingsError);
                 if (settingsError != EVRSettingsError.None)
                 {
-                    Trace.TraceError($"Error when writing SteamVR tracker roles: {settingsError}");
+                    Trace.WriteLine($"Error when writing SteamVR tracker roles: {settingsError}");
                 }
             }
         }
@@ -207,7 +222,7 @@ namespace openvr_tracker_role_gui
             var steamVrSettingsPath = Path.Combine(OpenVR.RuntimePath(), "../../../config/steamvr.vrsettings");
             if (!File.Exists(steamVrSettingsPath))
             {
-                Trace.TraceError("Could not find SteamVR configuration file!");
+                Trace.WriteLine("Could not find SteamVR configuration file!");
                 return trackerBindings;
             }
 

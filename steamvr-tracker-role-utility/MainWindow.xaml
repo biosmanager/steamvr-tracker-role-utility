@@ -1,10 +1,10 @@
-﻿<Window x:Class="openvr_tracker_role_gui.MainWindow"
+﻿<Window x:Class="steamvr_tracker_role_utility.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:System="clr-namespace:System;assembly=mscorlib"
-        xmlns:local="clr-namespace:openvr_tracker_role_gui"
+        xmlns:local="clr-namespace:steamvr_tracker_role_utility"
         mc:Ignorable="d"
         Title="SteamVR tracker role utility" Height="450" Width="800">
     <Window.Resources>
@@ -20,7 +20,8 @@
         <TabControl>
             <TabItem Header="SteamVR tracker roles">
                 <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="TrackerRoleList">
+                    <ScrollViewer>
+                        <ListView x:Name="TrackerRoleList">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Connected" Width="80" DisplayMemberBinding="{Binding Connected}"/>
@@ -35,11 +36,13 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    </ScrollViewer>
                 </Grid>
             </TabItem>
-            <TabItem HorizontalAlignment="Center" Height="20" Header="Connected devices" VerticalAlignment="Top" Width="115" Margin="0,-1,0,0">
+            <TabItem HorizontalAlignment="Center" Header="Connected devices" VerticalAlignment="Top" Width="115">
                 <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="ConnectedDeviceList" Margin="0,0,0,30">
+                    <ScrollViewer>
+                        <ListView x:Name="ConnectedDeviceList">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Index" Width="80" DisplayMemberBinding="{Binding Index}"/>
@@ -48,6 +51,14 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="Log" HorizontalAlignment="Center" Height="20" Header="Log" VerticalAlignment="Center" Width="54">
+                <Grid Background="#FFE5E5E5">
+                    <ScrollViewer>
+                        <TextBox x:Name="LogTextBox" HorizontalAlignment="Stretch" TextWrapping="Wrap" VerticalAlignment="Stretch" IsReadOnly="True" />
+                    </ScrollViewer>
                 </Grid>
             </TabItem>
         </TabControl>

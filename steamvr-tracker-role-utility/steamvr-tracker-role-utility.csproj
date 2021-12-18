@@ -6,10 +6,17 @@
     <RootNamespace>steamvr_tracker_role_utility</RootNamespace>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="openvr_api.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace openvr_tracker_role_gui
+namespace steamvr_tracker_role_utility
 {
     internal enum ETrackerRole
     {
