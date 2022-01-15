@@ -31,6 +31,7 @@ namespace steamvr_tracker_role_utility
         private event EventHandler deviceConnectedChanged;
         private event EventHandler trackersSectionChanged;
         private Dictionary<string, string> steamVrTrackerBindings;
+        private string? steamVrConfigPath = null;
 
 
         public OpenVrManager()
@@ -38,11 +39,13 @@ namespace steamvr_tracker_role_utility
             if (!OpenVR.IsRuntimeInstalled())
             {
                 Trace.WriteLine("SteamVR runtime not installed!");
+                return;
             }
 
             // Ensure SteamVR is running
             var dummyError = EVRInitError.None;
             OpenVR.Init(ref dummyError, EVRApplicationType.VRApplication_Scene);
+            SpinWait.SpinUntil(() => OpenVR.IsHmdPresent(), TimeSpan.FromSeconds(10));
             OpenVR.Shutdown();
 
             EVRInitError initError = EVRInitError.None;
@@ -55,6 +58,27 @@ namespace steamvr_tracker_role_utility
             {
                 Trace.WriteLine($"Could not initialize OpenVR! {initError}");
                 return;
+            }
+
+            var openVrPathsConfigPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "openvr", "openvrpaths.vrpath");
+            if (File.Exists(openVrPathsConfigPath))
+            {
+                var json = File.ReadAllText(openVrPathsConfigPath);
+                var openVrPathsConfig = JObject.Parse(json);
+
+                if (openVrPathsConfig.ContainsKey("config"))
+                {
+                    var paths = openVrPathsConfig["config"].ToObject<List<string>>();
+                    if (paths.Count > 0)
+                    {
+                        steamVrConfigPath = paths[0];
+                        Trace.WriteLine($"SteamVR config path: {paths[0]}");
+                    }
+                }
+            }
+            else
+            {
+                Trace.WriteLine($"Could not find {openVrPathsConfigPath}!");
             }
 
             Trace.WriteLine("Initialized OpenVR.");
@@ -219,7 +243,16 @@ namespace steamvr_tracker_role_utility
         {
             Dictionary<string, string> trackerBindings = new Dictionary<string, string>();
 
-            var steamVrSettingsPath = Path.Combine(OpenVR.RuntimePath(), "../../../config/steamvr.vrsettings");
+            string steamVrSettingsPath;
+            if (steamVrConfigPath is null)
+            {
+                steamVrSettingsPath = Path.Combine(OpenVR.RuntimePath(), "../../../config/steamvr.vrsettings");
+            }
+            else
+            {
+                steamVrSettingsPath = Path.Combine(steamVrConfigPath, "steamvr.vrsettings");
+            }
+
             if (!File.Exists(steamVrSettingsPath))
             {
                 Trace.WriteLine("Could not find SteamVR configuration file!");
